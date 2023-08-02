@@ -25,10 +25,14 @@ jobs:
           go-version: '>=1.20'
       -
         name: Install Dagger
-        run: go get dagger.io/dagger@latest
+        run: |
+        cd coolProject
+        go get dagger.io/dagger@latest
       -
         name:  Build and publish with Dagger
-        run: go run ci/main.go
+        run: |
+        cd coolProject
+        go run ci/main.go
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
