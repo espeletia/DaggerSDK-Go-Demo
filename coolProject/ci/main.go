@@ -2,53 +2,29 @@ package main
 
 import (
 	"context"
+	"coolProject/ci/runner"
 	"fmt"
 	"os"
-
-	"dagger.io/dagger"
 )
 
 func main() {
-	if err := build(context.Background()); err != nil {
-		fmt.Println(err)
+	mode := os.Args[1:]
+	if len(mode) == 0 {
+		fmt.Println("Usage: ci [build|test]")
+		return
 	}
-}
-
-func build(ctx context.Context) error {
-	fmt.Println("Building with Dagger")
-
-	// initialize Dagger client
-	client, err := dagger.Connect(ctx, dagger.WithLogOutput(os.Stderr))
-	if err != nil {
-		return err
+	if mode[0] == "build" {
+		if err := runner.Build(context.Background()); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	} else if mode[0] == "test" {
+		if err := runner.DoTests(context.Background()); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	} else {
+		fmt.Println("Usage: ci [build|test]")
+		return
 	}
-	defer client.Close()
-
-	// get reference to the local project
-	src := client.Host().Directory(".")
-
-	// get `golang` image
-	golang := client.Container().From("golang:latest")
-
-	// mount cloned repository into `golang` image
-	golang = golang.WithDirectory("/src", src).WithWorkdir("/src")
-
-	// add environment variables
-	golang = golang.WithEnvVariable("CGO_ENABLED", "0")
-	golang = golang.WithEnvVariable("GOOS", "linux")
-	golang = golang.WithEnvVariable("GOARCH", "amd64")
-
-	// define the application build command
-	serverOutputPath := "build/start_server"
-	golang = golang.WithExec([]string{"go", "build", "-o", serverOutputPath, "./cmd/main.go"})
-
-	// get reference to the built binary in the container
-	output := golang.File(serverOutputPath)
-
-	// write the binary from the container to the host
-	_, err = output.Export(ctx, serverOutputPath)
-	if err != nil {
-		return err
-	}
-	return nil
 }
