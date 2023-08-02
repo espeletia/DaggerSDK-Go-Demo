@@ -23,6 +23,11 @@ func main() {
 			fmt.Println(err)
 			os.Exit(1)
 		}
+	} else if mode[0] == "push" {
+		if err := runner.PushRegistry(context.Background()); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	} else {
 		fmt.Println("Usage: ci [build|test]")
 		return
