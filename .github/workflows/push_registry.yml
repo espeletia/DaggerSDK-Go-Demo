@@ -32,7 +32,7 @@ jobs:
         name:  Build and publish with Dagger
         run: |
           cd coolProject
-          go run ci/main.go
+          go run ci/main.go push
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
