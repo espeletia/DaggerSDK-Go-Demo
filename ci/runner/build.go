@@ -19,7 +19,7 @@ func Build(ctx context.Context) error {
 	defer client.Close()
 
 	// get reference to the local project
-	src := client.Host().Directory(".")
+	src := client.Host().Directory("./coolProject")
 
 	// get `golang` image
 	golang := client.Container().From(GOLANG_IMAGE)

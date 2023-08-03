@@ -10,11 +10,11 @@ import (
 )
 
 var (
-	BUILD           = "build/"
+	BUILD           = "coolProject/build/"
 	DOCKER_USERNAME = "DOCKER_USERNAME"
 	DOCKER_PASSWORD = "DOCKER_PASSWORD"
 	GOLANG_IMAGE    = "golang:latest"
-	SERVER_OUTPUT   = "build/start_server"
+	SERVER_OUTPUT   = "coolProject/build/start_server"
 	SERVER_ENTRY    = "./start_server"
 )
 

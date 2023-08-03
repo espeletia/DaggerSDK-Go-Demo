@@ -1,8 +1,8 @@
 package main
 
 import (
+	"ci/runner"
 	"context"
-	"coolProject/ci/runner"
 	"fmt"
 	"os"
 )
