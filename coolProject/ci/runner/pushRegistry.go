@@ -26,11 +26,8 @@ func PushRegistry(ctx context.Context) error {
 	defer client.Close()
 
 	// set registry password as secret for Dagger pipeline
-	password := client.SetSecret("password", os.Getenv("DOCKERHUB_PASSWORD"))
-	username := os.Getenv("DOCKERHUB_USERNAME")
-	username = "espeletia"
-	fmt.Printf("username: %s\n", username)
-	fmt.Printf("password: %s\n", os.Getenv("DOCKERHUB_PASSWORD"))
+	password := client.SetSecret("password", os.Getenv("DOCKER_PASSWORD"))
+	username := os.Getenv("DOCKER_USERNAME")
 
 	// get reference to source code directory
 	source := client.Host().Directory(".")
@@ -56,7 +53,6 @@ func PushRegistry(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(fmt.Sprintf("%s/cool-project", username))
 
 	// publish image to registry
 	address, err := golang.WithRegistryAuth("docker.io", username, password).
