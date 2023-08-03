@@ -9,10 +9,18 @@ import (
 	"dagger.io/dagger"
 )
 
+var (
+	BUILD           = "build/"
+	DOCKER_USERNAME = "DOCKER_USERNAME"
+	DOCKER_PASSWORD = "DOCKER_PASSWORD"
+	GOLANG_IMAGE    = "golang:latest"
+	SERVER_OUTPUT   = "build/start_server"
+	SERVER_ENTRY    = "./start_server"
+)
+
 func PushRegistry(ctx context.Context) error {
 
-	// check for Docker Hub registry credentials in host environment
-	vars := []string{"DOCKER_USERNAME", "DOCKER_PASSWORD"}
+	vars := []string{DOCKER_USERNAME, DOCKER_PASSWORD}
 	for _, v := range vars {
 		if os.Getenv(v) == "" {
 			log.Fatalf("Environment variable %s is not set", v)
@@ -25,16 +33,13 @@ func PushRegistry(ctx context.Context) error {
 	}
 	defer client.Close()
 
-	// set registry password as secret for Dagger pipeline
-	password := client.SetSecret("password", os.Getenv("DOCKER_PASSWORD"))
-	username := os.Getenv("DOCKER_USERNAME")
+	password := client.SetSecret("password", os.Getenv(DOCKER_PASSWORD))
+	username := os.Getenv(DOCKER_USERNAME)
 
-	// get reference to source code directory
 	source := client.Host().Directory(".")
 
-	golang := client.Container().From("golang:latest")
+	golang := client.Container().From(GOLANG_IMAGE)
 
-	// mount cloned repository into `golang` image
 	golang = golang.WithDirectory("/src", source).WithWorkdir("/src")
 
 	// add environment variables
@@ -42,21 +47,19 @@ func PushRegistry(ctx context.Context) error {
 	golang = golang.WithEnvVariable("GOOS", "linux")
 	golang = golang.WithEnvVariable("GOARCH", "amd64")
 
-	// define the application build command
-	serverOutputPath := "build/start_server"
-	golang = golang.WithExec([]string{"go", "build", "-o", serverOutputPath, "./cmd/main.go"})
+	golang = golang.WithExec([]string{"go", "build", "-o", SERVER_OUTPUT, "./cmd/main.go"})
 	// get reference to the built binary in the container
-	output := golang.File(serverOutputPath)
+	output := golang.File(SERVER_OUTPUT)
 
 	// write the binary from the container to the host
-	_, err = output.Export(ctx, serverOutputPath)
+	_, err = output.Export(ctx, SERVER_OUTPUT)
 	if err != nil {
 		return err
 	}
+	buildDir := client.Host().Directory(BUILD)
+	deploy := client.Container().From(GOLANG_IMAGE).WithDirectory("/app", buildDir).WithWorkdir("/app").WithEntrypoint([]string{SERVER_ENTRY})
 
-	// publish image to registry
-	address, err := golang.WithRegistryAuth("docker.io", username, password).
-		Publish(ctx, fmt.Sprintf("%s/cool-project", username))
+	address, err := deploy.WithRegistryAuth("docker.io", username, password).Publish(ctx, fmt.Sprintf("%s/cool-project", username))
 	if err != nil {
 		return err
 	}
