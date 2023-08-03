@@ -27,38 +27,25 @@ func PushRegistry(ctx context.Context) error {
 		}
 	}
 
+	// Build the go binary
+	Build(ctx)
+
+	// initialize Dagger client
 	client, err := dagger.Connect(ctx, dagger.WithLogOutput(os.Stderr))
 	if err != nil {
 		return err
 	}
 	defer client.Close()
 
+	// define ENV variables
 	password := client.SetSecret("password", os.Getenv(DOCKER_PASSWORD))
 	username := os.Getenv(DOCKER_USERNAME)
 
-	source := client.Host().Directory(".")
-
-	golang := client.Container().From(GOLANG_IMAGE)
-
-	golang = golang.WithDirectory("/src", source).WithWorkdir("/src")
-
-	// add environment variables
-	golang = golang.WithEnvVariable("CGO_ENABLED", "0")
-	golang = golang.WithEnvVariable("GOOS", "linux")
-	golang = golang.WithEnvVariable("GOARCH", "amd64")
-
-	golang = golang.WithExec([]string{"go", "build", "-o", SERVER_OUTPUT, "./cmd/main.go"})
-	// get reference to the built binary in the container
-	output := golang.File(SERVER_OUTPUT)
-
-	// write the binary from the container to the host
-	_, err = output.Export(ctx, SERVER_OUTPUT)
-	if err != nil {
-		return err
-	}
+	// get reference to the local project
 	buildDir := client.Host().Directory(BUILD)
 	deploy := client.Container().From(GOLANG_IMAGE).WithDirectory("/app", buildDir).WithWorkdir("/app").WithEntrypoint([]string{SERVER_ENTRY})
 
+	// push to registry
 	address, err := deploy.WithRegistryAuth("docker.io", username, password).Publish(ctx, fmt.Sprintf("%s/cool-project", username))
 	if err != nil {
 		return err
