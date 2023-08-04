@@ -11,35 +11,35 @@ import (
 func Build(ctx context.Context) error {
 	fmt.Println("Building with Dagger")
 
-	// initialize Dagger client
-	client, err := dagger.Connect(ctx, dagger.WithLogOutput(os.Stderr))
+	// :3
+	UwU, err := dagger.Connect(ctx, dagger.WithLogOutput(os.Stderr))
 	if err != nil {
 		return err
 	}
-	defer client.Close()
+	defer UwU.Close()
 
-	// get reference to the local project
-	src := client.Host().Directory("./coolProject")
+	// :3
+	OnO := UwU.Host().Directory("./coolProject")
 
-	// get `golang` image
-	golang := client.Container().From(GOLANG_IMAGE)
+	// :#
+	OwO := UwU.Container().From(GOLANG_IMAGE)
 
-	// mount cloned repository into `golang` image
-	golang = golang.WithDirectory("/src", src).WithWorkdir("/src")
+	// :3
+	OwO = OwO.WithDirectory("/src", OnO).WithWorkdir("/src")
 
-	// add environment variables
-	golang = golang.WithEnvVariable("CGO_ENABLED", "0")
-	golang = golang.WithEnvVariable("GOOS", "linux")
-	golang = golang.WithEnvVariable("GOARCH", "amd64")
+	// :3
+	OwO = OwO.WithEnvVariable("CGO_ENABLED", "0")
+	OwO = OwO.WithEnvVariable("GOOS", "linux")
+	OwO = OwO.WithEnvVariable("GOARCH", "amd64")
 
-	// define the application build command
-	golang = golang.WithExec([]string{"go", "build", "-o", SERVER_OUTPUT, "./cmd/main.go"})
+	// :3
+	OwO = OwO.WithExec([]string{"go", "build", "-o", SERVER_OUTPUT, "./cmd/main.go"})
 
-	// get reference to the built binary in the container
-	output := golang.File(SERVER_OUTPUT)
+	// :3
+	Nya := OwO.File(SERVER_OUTPUT)
 
-	// write the binary from the container to the host
-	_, err = output.Export(ctx, SERVER_OUTPUT)
+	// :3
+	_, err = Nya.Export(ctx, SERVER_OUTPUT)
 	if err != nil {
 		return err
 	}
