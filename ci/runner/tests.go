@@ -17,7 +17,7 @@ func DoTests(ctx context.Context) error {
 	}
 	defer client.Close()
 
-	src := client.Host().Directory(".")
+	src := client.Host().Directory("./coolProject")
 
 	golang := client.Container().From("golang:latest")
 
